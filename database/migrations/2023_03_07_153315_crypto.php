@@ -91,6 +91,7 @@ class crypto extends Migration
         //mencari Simple Moving Average
         Schema::create('Bullish_Berrish', function (Blueprint $table){
             $table->id();
+            $table->date('date');
             $table->boolean('Status');
             $table->string('Komen');
         });
@@ -125,7 +126,14 @@ class crypto extends Migration
         // prediction
         Schema::create('prediction', function (Blueprint $table){
             $table->id();
+            $table->date('date');
             $table->boolean('hasil');
+        });
+        // err rate
+        Schema::create('err_rate', function (Blueprint $table){
+            $table->id();
+            $table->date('date');
+            $table->float('err_rate', 20, 10);
         });
     }
     public function down()
