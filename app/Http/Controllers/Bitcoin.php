@@ -5,20 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PDO;
-use PhpOption\None;
-use Spatie\LaravelIgnition\Recorders\DumpRecorder\Dump;
-use Symfony\Component\Console\Output\Output;
 
-set_time_limit(0);
-class NewController extends Controller
+class Bitcoin extends Controller
 {
+
     //mencari Simple Moving Average
     public function HitungSMA($table)
     {
         // Create a PDO connection to the database
         $db = new PDO('mysql:host=localhost;dbname=crypto', 'root', '');
 
-        // Prepare the SQL query to get the low, high, and volume values from the binance table in groups of 5
+        // Prepare the SQL query to get the low, high, and volume values from the bitcoin table in groups of 5
         $stmt = $db->prepare('SELECT date, low, high, volume FROM ' . $table);
 
         // Execute the query
@@ -85,7 +82,7 @@ class NewController extends Controller
         // Create a PDO connection to the database
         $db = new PDO('mysql:host=localhost;dbname=crypto', 'root', '');
 
-        // Prepare the SQL query to get the monthly averages of low, high, and volume from the binance table
+        // Prepare the SQL query to get the monthly averages of low, high, and volume from the bitcoin table
         $stmt = $db->prepare("SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, AVG(low) AS avg_low, AVG(high) AS avg_high, AVG(volume) AS avg_volume FROM $table GROUP BY month");
 
         // Execute the query
@@ -141,7 +138,7 @@ class NewController extends Controller
         return $output;
     }
 
-    // treshold check based on threshold table per month and iterate to chech per day in binance table
+    // treshold check based on threshold table per month and iterate to chech per day in bitcoin table
     public function bayes($table)
     {
         // Get the threshold data for each month
@@ -161,7 +158,7 @@ class NewController extends Controller
             $startDate = $year . '-' . $month . '-01';
             $endDate = date('Y-m-t', strtotime($startDate));
 
-            // Get the binance data for the month
+            // Get the bitcoin data for the month
             $prevData = DB::table($table)
                 ->whereBetween('date', [$startDate, $endDate])
                 ->get();
@@ -222,52 +219,54 @@ class NewController extends Controller
     }
 
 
-
     // naive bayes output count for each day
     public function naive($high, $low, $volume)
     {
         // class
-        $harga1 = DB::table('bayes')->where('harga', 1)->count();
-        $harga0 = DB::table('bayes')->where('harga', 0)->count();
-        $hargatotal = DB::table('bayes')->count();
+        $harga1 = DB::table('bayes')->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $harga0 = DB::table('bayes')->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $hargatotal = DB::table('bayes')->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $Class1 = $harga1 / $hargatotal;
         $Class0 = $harga0 / $hargatotal;
 
         // high
-        $high11 = DB::table('bayes')->where('high', 1)->where('harga', 1)->count();
-        $high01 = DB::table('bayes')->where('high', 0)->where('harga', 1)->count();
-        $high10 = DB::table('bayes')->where('high', 1)->where('harga', 0)->count();
-        $high00 = DB::table('bayes')->where('high', 0)->where('harga', 0)->count();
-        $hightotal1 = DB::table('bayes')->where('harga', 1)->count();
+        $high11 = DB::table('bayes')->where('high', 1)->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $high01 = DB::table('bayes')->where('high', 0)->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $high10 = DB::table('bayes')->where('high', 1)->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $high00 = DB::table('bayes')->where('high', 0)->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $hightotal1 = DB::table('bayes')->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $ph11 = $high11 / $hightotal1;
         $ph01 = $high01 / $hightotal1;
-        $hightotal0 = DB::table('bayes')->where('harga', 0)->count();
+        $hightotal0 = DB::table('bayes')->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $ph10 = $high10 / $hightotal0;
         $ph00 = $high00 / $hightotal0;
 
         // low
-        $low11 = DB::table('bayes')->where('low', 1)->where('harga', 1)->count();
-        $low01 = DB::table('bayes')->where('low', 0)->where('harga', 1)->count();
-        $low10 = DB::table('bayes')->where('low', 1)->where('harga', 0)->count();
-        $low00 = DB::table('bayes')->where('low', 0)->where('harga', 0)->count();
-        $lowtotal1 = DB::table('bayes')->where('harga', 1)->count();
+        $low11 = DB::table('bayes')->where('low', 1)->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $low01 = DB::table('bayes')->where('low', 0)->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $low10 = DB::table('bayes')->where('low', 1)->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $low00 = DB::table('bayes')->where('low', 0)->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $lowtotal1 = DB::table('bayes')->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $pl11 = $low11 / $lowtotal1;
         $pl01 = $low01 / $lowtotal1;
-        $lowtotal0 = DB::table('bayes')->where('harga', 0)->count();
+        $lowtotal0 = DB::table('bayes')->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $pl10 = $low10 / $lowtotal0;
         $pl00 = $low00 / $lowtotal0;
 
         // volume
-        $volume11 = DB::table('bayes')->where('volume', 1)->where('harga', 1)->count();
-        $volume01 = DB::table('bayes')->where('volume', 0)->where('harga', 1)->count();
-        $volume10 = DB::table('bayes')->where('volume', 1)->where('harga', 0)->count();
-        $volume00 = DB::table('bayes')->where('volume', 0)->where('harga', 0)->count();
-        $volumetotal1 = DB::table('bayes')->where('harga', 1)->count();
+        $volume11 = DB::table('bayes')->where('volume', 1)->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $volume01 = DB::table('bayes')->where('volume', 0)->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $volume10 = DB::table('bayes')->where('volume', 1)->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $volume00 = DB::table('bayes')->where('volume', 0)->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
+        $volumetotal1 = DB::table('bayes')->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $pv11 = $volume11 / $volumetotal1;
         $pv01 = $volume01 / $volumetotal1;
-        $volumetotal0 = DB::table('bayes')->where('harga', 0)->count();
+        $volumetotal0 = DB::table('bayes')->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $pv10 = $volume10 / $volumetotal0;
         $pv00 = $volume00 / $volumetotal0;
+
+
+
 
         // output when up
         $output1111 = round((($ph11 * $pl11 * $pv11 * $Class1) / (($ph11 * $pl11 * $pv11 * $Class1) + ($ph10 * $pl10 * $pv10 * $Class0))) * 100, 2);
@@ -359,7 +358,7 @@ class NewController extends Controller
         $bayeses = DB::table('bayes')->get();
         $akurasis = DB::table('prediction')->select('date','hasil')->get();
         $count = 0;
-        $total = DB::table('bayes')->count();
+        $total = DB::table('prediction')->count();
         foreach ($bayeses as $bayes) {
             foreach ($akurasis as $akurasi) {
                 if ($bayes->date == $akurasi->date) {
@@ -471,84 +470,35 @@ public function f1Score()
 
     return $f1Score;
 }
-
-
-//Masterinput
-public function import(Request $request)
-{
-    $file = $request->file('csv_input_master');
-    if ($file && $file->isValid()) {
-        $path = $file->getRealPath();
-        $data = array_map('str_getcsv', file($path));
-
-        // Get header row to retrieve column indexes
-        $header = $data[0];
-        $dateIndex = array_search('Date', $header);
-        $highIndex = array_search('High', $header);
-        $lowIndex = array_search('Low', $header);
-        $volumeIndex = array_search('Volume', $header);
-        // Remove header row from data
-        $data = array_slice($data, 1);
-        $table = 'master';
-        DB::table('master')->where('id', '<>', 'admin')->delete();
-        foreach ($data as $row) {
-            DB::table($table)->insert([
-                'date' => date('Y/m/d', strtotime($row[$dateIndex])),
-                'high' => is_numeric($row[$highIndex]) ? $row[$highIndex] : 0,
-                'low' => is_numeric($row[$lowIndex]) ? $row[$lowIndex] : 0,
-                'volume' => is_numeric($row[$volumeIndex]) ? $row[$volumeIndex] : 0,
-            ]);
-        }
-    }
-        $table = 'master';
-        $this->HitungSMA($table);
-        $this->Threshold($table);
-        $data = DB::table($table)->select('high')->get();
-        $trend = DB::table('SMA')->select('sma_high')->get();
-
-        // get data as array from table binance and column low and column id
-        $low_data = DB::table($table)->select('low')->get();
-        $low_trend = DB::table('SMA')->select('sma_low')->get();
-
-        // get data as array from table binance and column volume and column id
-        $volume_data = DB::table($table)->select('volume')->get();
-        $volume_trend = DB::table('SMA')->select('sma_volume')->get();
-        $date = DB::table($table)->select('date')->get();
-
-        // get oyutput in function BB
-        $output = $this->BB($table);
-        // get output in function bayes
-
-        // select last high low and volume data from bayes
-        $high = DB::table('bayes')->orderBy('id', 'desc')->value('high');
-        $low = DB::table('bayes')->orderBy('id', 'desc')->value('low');
-        $volume = DB::table('bayes')->orderBy('id', 'desc')->value('volume');
-        $outputb = $this->naive($high, $low, $volume);
-        $akurasi = $this->predict();
-        $recall = $this->recall();
-        $precision = $this->precision();
-        $f1Score = $this->f1Score();
-        //$this->predict();
-        return view('output')->with(compact('data', 'trend', 'low_data', 'low_trend', 'volume_data', 'volume_trend', 'date', 'output', 'outputb', 'akurasi', 'recall', 'precision', 'f1Score'));
-}
-
-    // predict all data in table master in save in table prediction
     public function predict()
     {
         // truncate table prediction
         DB::table('prediction')->truncate();
         // insert first row of data in table prediction
-        DB::table('prediction')->insert([
-            'date' => DB::table('bayes')->orderBy('id', 'asc')->value('date'),
-            'hasil' => DB::table('bayes')->orderBy('id', 'asc')->value('harga'),
-        ]);
-        // count all data in table master and itearte
+        $latestBayesData = DB::table('bayes')->orderBy('id', 'desc')->take(100)->get()->last();
+        if ($latestBayesData) {
+            $datep = $latestBayesData->date;
+            $hasilp = $latestBayesData->harga;
+
+            DB::table('prediction')->insert([
+                'date' => $datep,
+                'hasil' => $hasilp
+            ]);
+        }
+
+        // count all data in table bitcoin and iterate
         $count = DB::table('bayes')->count();
-        // iterate the data based on count and get the high low and volume data
-        for ($i = 1; $i <= $count; $i++) {
-            $high = DB::table('bayes')->where('id', $i)->value('high');
-            $low = DB::table('bayes')->where('id', $i)->value('low');
-            $volume = DB::table('bayes')->where('id', $i)->value('volume');
+        // get the last 100 records from the bayes table in ascending order
+        $bayesData = DB::table('bayes')->orderBy('id', 'desc')->take(100)->get();
+        // Convert collection to array
+        $bayesData = $bayesData->toArray();
+        // Reverse the array
+        $bayesData = array_reverse($bayesData);
+        // iterate the data and get the high, low, and volume data
+        foreach ($bayesData as $data) {
+            $high = $data->high;
+            $low = $data->low;
+            $volume = $data->volume;
             // get the output from function bayes
             $output = $this->naive($high, $low, $volume);
             // save the output in table prediction
@@ -559,8 +509,9 @@ public function import(Request $request)
                 $output = 0;
             }
             DB::table('prediction')->insert([
-                'id' => $i + 1,
-                'date'=> DB::table('bayes')->where('id', $i)->value('date'),
+                'id' => $data->id + 1,
+                // insert date to date but increment by 1 first
+                'date' => date('Y-m-d', strtotime($data->date . ' + 1 days')),
                 'hasil' => $output,
             ]);
         }
@@ -570,28 +521,51 @@ public function import(Request $request)
         return $p;
     }
 
-    //Binance
-    public function import1(Request $request)
+    //bitcoin
+    public function import2(Request $request)
     {
         $datei = $request->date;
         // validate date
-        $this->validate($request, [
-            'date' => 'required|date',
-        ]);
+        // $this->validate($request, [
+        //     'date' => 'required|date',
+        // ]);
         // convert date to string
         $datei = date('Y/m/d', strtotime($datei));
+        $file = $request->file('csv_input_bitcoin');
+        if ($file && $file->isValid()) {
+            $path = $file->getRealPath();
+            $data = array_map('str_getcsv', file($path));
 
-        $table = 'binance';
+            // Get header row to retrieve column indexes
+            $header = $data[0];
+            $dateIndex = array_search('Date', $header);
+            $highIndex = array_search('High', $header);
+            $lowIndex = array_search('Low', $header);
+            $volumeIndex = array_search('Volume', $header);
+            // Remove header row from data
+            $data = array_slice($data, 1);
+            $table = 'bitcoin';
+            DB::table('bitcoin')->where('id', '<>', 'admin')->delete();
+            foreach ($data as $row) {
+                DB::table($table)->insert([
+                    'date' => date('Y/m/d', strtotime($row[$dateIndex])),
+                    'high' => is_numeric($row[$highIndex]) ? $row[$highIndex] : 0,
+                    'low' => is_numeric($row[$lowIndex]) ? $row[$lowIndex] : 0,
+                    'volume' => is_numeric($row[$volumeIndex]) ? $row[$volumeIndex] : 0,
+                ]);
+            }
+        }
+        $table = 'bitcoin';
         $this->HitungSMA($table);
         $this->Threshold($table);
         $data = DB::table($table)->select('high')->get();
         $trend = DB::table('SMA')->select('sma_high')->get();
 
-        // get data as array from table binance and column low and column id
+        // get data as array from table bitcoin and column low and column id
         $low_data = DB::table($table)->select('low')->get();
         $low_trend = DB::table('SMA')->select('sma_low')->get();
 
-        // get data as array from table binance and column volume and column id
+        // get data as array from table bitcoin and column volume and column id
         $volume_data = DB::table($table)->select('volume')->get();
         $volume_trend = DB::table('SMA')->select('sma_volume')->get();
         $date = DB::table($table)->select('date')->get();
@@ -600,10 +574,10 @@ public function import(Request $request)
         $output = $this->BB($table);
         // get output in function bayes
 
-        // select high and low and volume from table binance based on date
-        $high = DB::table('bayes')->select('high')->where('date', $datei)->get()->first()->high;
-        $low = DB::table('bayes')->select('low')->where('date', $datei)->get()->first()->low;
-        $volume = DB::table('bayes')->select('volume')->where('date', $datei)->get()->first()->volume;
+        // select high and low and volume from table bitcoin based on date
+        $high = DB::table('bayes')->orderBy('id', 'desc')->value('high');
+        $low = DB::table('bayes')->orderBy('id', 'desc')->value('low');
+        $volume = DB::table('bayes')->orderBy('id', 'desc')->value('volume');
 
         $outputb = $this->naive($high, $low, $volume);
         $akurasi = $this->predict();
@@ -612,6 +586,13 @@ public function import(Request $request)
         return view('outputmenu')->with(compact('data', 'trend', 'low_data', 'low_trend', 'volume_data', 'volume_trend', 'date', 'output', 'outputb', 'akurasi', 'datei'));
     }
 
+    public function index(Request $request)
+    {
+        // minim date in table bitcoin
+        $minDate = DB::table('bitcoin')->min('date');
+        $maxDate = DB::table('bitcoin')->max('date');
+        return view('menu.bitcoin', compact('minDate', 'maxDate'));
+    }
 //     //Bitcoin
 //     public function import2(Request $request)
 //     {
@@ -780,4 +761,5 @@ public function import(Request $request)
 //         // redirect to the page to display the results output
 //         return redirect()->route('output');
 //     }
-     }
+
+}

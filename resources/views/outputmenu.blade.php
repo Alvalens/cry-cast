@@ -56,7 +56,10 @@
           {{-- sma --}}
           <div class="output text-center mt-5 mb-5">
             <h3>Trend</h3>
-            <p>Trend pada tanggal {{ date('Y/m/d', strtotime($date[count($date) - 1]->date . ' + 1 day')) }}</p> <br>
+            <p>Trend pada tanggal
+            {{-- select datei --}}
+            {{ $datei }}
+            </p> <br>
             <div class="card px-4">
               <p class="pt-3">Trend cenderung {{ $output }}</p>
             </div>
@@ -66,13 +69,10 @@
           {{-- bayes --}}
           <div class="output text-center mt-5 mb-5">
             <h3>Hasil prediksi</h3>
-            <p>Hasil prediksi pada tanggal {{ date('Y/m/d', strtotime($date[count($date) - 1]->date . ' + 1 day')) }}</p>
+            <p>Hasil prediksi pada tanggal {{ $datei }}</p>
             <div class="card px-4">
               <p class="pt-3">{{ $outputb }} %</p>
               <p> Akurasi: {{ $akurasi }} %</p>
-              <p> Recall: {{ $recall }} %</p>
-              <p> Precision: {{ $precision }} %</p>
-              <p> F1 Score: {{ $f1Score }} %</p>
             </div>
           </div>
         </div>
@@ -80,16 +80,17 @@
 
       {{-- back button float --}}
       <div class="tombol">
-        <a href="{{ url('/menu-master') }}" class="tombol-terbang" role="button" type="button">
+        <a href="{{ url('/menu') }}" class="tombol-terbang" role="button" type="button">
           <i class="fa-solid fa-reply"></i></a>
       </div>
       {{-- back button biasa --}}
       <div class="tombol2 mt-3 mb-3 text-center">
-        <a href="{{ url('/menu-master') }}" class="btn btn-primary" role="button" type="button"> Kembali</a>
+        <a href="{{ url('/menu') }}" class="btn btn-primary" role="button" type="button"> Kembali</a>
       </div>
 
     </div>
-
+    {{-- swup js  --}}
+    
   </section>
   {{-- Chart.js --}}
   <script src="{{ url('js/chart.js/dist/chart.umd.js') }}"></script>
@@ -306,7 +307,7 @@ const chart2 = new Chart(ctx2, {
 
     let pointRadius3;
     let numDataPoints3 = 30; // default number of data points to display
-    const dataPointsDropdown3 = document.getElementById('data-points'); // get the dropdown element
+    const dataPointsDropdown3 = document.getElementById('data-points');
     dataPointsDropdown3.addEventListener('change', function() {
       const selectedOption = dataPointsDropdown3.value;
       if (selectedOption === 'all') {
