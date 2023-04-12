@@ -5,6 +5,8 @@ use App\Http\Controllers\ErrRate;
 use App\Http\Controllers\UserController;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Binance;
+use App\Http\Controllers\Bitcoin;
 
 
 /*
@@ -72,10 +74,8 @@ Route::prefix('menu')->group(function () {
         return view('menu.bitcoin');
     });
 
-    // route to biance
-    Route::get('binance', function () {
-        return view('menu.binance');
-    });
+    // route to bianceconmtroller index
+    Route::get('binance', [Binance::class, 'index']);
 
     // route to dogecoin
     Route::get('dogecoin', function () {
@@ -106,7 +106,8 @@ Route::prefix('menu')->group(function () {
 // Route to controller
 Route::post('/import', 'App\Http\Controllers\NewController@import');
 Route::post('/import1', 'App\Http\Controllers\NewController@import1');
-Route::post('/import2', 'App\Http\Controllers\NewController@import2');
+// import 2 in controller Bitcoin
+Route::post('/import2', 'App\Http\Controllers\Bitcoin@import2')->name('import2');
 Route::post('/import3', 'App\Http\Controllers\NewController@import3');
 Route::post('/import4', 'App\Http\Controllers\NewController@import4');
 Route::post('/import5', 'App\Http\Controllers\NewController@import5');
@@ -115,6 +116,9 @@ Route::post('/import7', 'App\Http\Controllers\NewController@import7');
 Route::post('/import8', 'App\Http\Controllers\NewController@import8');
 
 // Output
+
+// Try Naive Bayes
+Route::get('/naive', 'App\Http\Controllers\NewController@naiveBayes')->name('naive');
 
 // redirect import1 to output
 
@@ -130,5 +134,15 @@ Route::get('/naive', 'App\Http\Controllers\NewController@naive')->name('naive');
 // route to controller accuracy
 Route::get('/accuracy', 'App\Http\Controllers\NewController@accuracy')->name('accuracy');
 
+// route to controller recall
+Route::get('/recall', 'App\Http\Controllers\NewController@recall')->name('recall');
+
+// route to controller precision
+Route::get('/precision', 'App\Http\Controllers\NewController@precision')->name('precision');
+
+// route to controller f1
+Route::get('/f1', 'App\Http\Controllers\NewController@f1')->name('f1');
+
 // route to controller errRate
 Route::get('/errate', 'App\Http\Controllers\ErrRate@errate')->name('errate');
+Route::get('/errate1', 'App\Http\Controllers\ErrRate@errate1')->name('errate1');
