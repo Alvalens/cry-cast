@@ -8,13 +8,7 @@ use PDO;
 
 class Binance extends Controller
 {
-        public function index(Request $request){
-        // minim date in table binance
-        $minDate = DB::table('binance')->min('date');
-        $maxDate = DB::table('binance')->max('date');
-        return view('menu.binance', compact('minDate', 'maxDate'));
-        }
-    //mencari Simple Moving Average
+        //mencari Simple Moving Average
     public function HitungSMA($table)
     {
         // Create a PDO connection to the database
@@ -224,11 +218,10 @@ class Binance extends Controller
     }
 
 
-
     // naive bayes output count for each day
-    public function naive($high=0, $low=0, $volume=1)
+    public function naive($high, $low, $volume)
     {
-           // class
+        // class
         $harga1 = DB::table('bayes')->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $harga0 = DB::table('bayes')->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $hargatotal = DB::table('bayes')->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
@@ -270,6 +263,9 @@ class Binance extends Controller
         $volumetotal0 = DB::table('bayes')->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $pv10 = $volume10 / $volumetotal0;
         $pv00 = $volume00 / $volumetotal0;
+
+
+
 
         // output when up
         $output1111 = round((($ph11 * $pl11 * $pv11 * $Class1) / (($ph11 * $pl11 * $pv11 * $Class1) + ($ph10 * $pl10 * $pv10 * $Class0))) * 100, 2);
@@ -375,6 +371,104 @@ class Binance extends Controller
         return $accuracy;
     }
 
+// Recall
+public function recall()
+{
+    DB::table('recall')->truncate();
+    $bayeses = DB::table('bayes')->get();
+    $predictions = DB::table('prediction')->get();
+    $truePositive = 0;
+    $falseNegative = 0;
+    $totalPositive = 0;
+    $totalNegative = 0;
+
+    // hitung true positive dan false negative
+    foreach ($bayeses as $bayes) {
+        foreach ($predictions as $prediction) {
+            if ($bayes->date == $prediction->date) {
+                if ($bayes->harga == 1) {
+                    $totalPositive++;
+                    if ($prediction->hasil == 1) {
+                        $truePositive++;
+                    } else {
+                        $falseNegative++;
+                    }
+                } else {
+                    $totalNegative++;
+                }
+            }
+        }
+    }
+
+    // hitung recall
+    if ($truePositive + $falseNegative > 0) {
+        $recall = round($truePositive / ($truePositive + $falseNegative) * 100, 2);
+    } else {
+        echo "else recall 0";
+        $recall = 0;
+    }
+
+    DB::table('recall')->insert(['hasil' => $recall]);
+
+    return $recall;
+}
+
+// Precision
+public function precision()
+{
+    DB::table('precision')->truncate();
+    $bayeses = DB::table('bayes')->get();
+    $predictions = DB::table('prediction')->get();
+    $truePositive = 0;
+    $falsePositive = 0;
+    $totalPositive = 0;
+    $totalNegative = 0;
+
+    // hitung true positive dan false positive
+    foreach ($bayeses as $bayes) {
+        foreach ($predictions as $prediction) {
+            if ($bayes->date == $prediction->date) {
+                if ($bayes->harga == 1) {
+                    $totalPositive++;
+                    if ($prediction->hasil == 1) {
+                        $truePositive++;
+                    }
+                } else {
+                    $totalNegative++;
+                    if ($prediction->hasil == 1) {
+                        $falsePositive++;
+                    }
+                }
+            }
+        }
+    }
+
+    // hitung precision
+    if ($truePositive + $falsePositive > 0) {
+        $precision = round($truePositive / ($truePositive + $falsePositive) * 100, 2);
+    } else {
+        $precision = 0;
+    }
+
+    DB::table('precision')->insert(['hasil' => $precision]);
+
+    return $precision;
+}
+
+// F1 Score
+public function f1Score()
+{
+    $recall = $this->recall();
+    $precision = $this->precision();
+    if ($recall + $precision > 0) {
+        $f1Score = round((2 * $recall * $precision) / ($recall + $precision), 2);
+    } else {
+        $f1Score = 0;
+    }
+    DB::table('f1_score')->insert(['hasil' => $f1Score]);
+
+    return $f1Score;
+}
     public function predict()
     {
         // truncate table prediction
@@ -391,7 +485,7 @@ class Binance extends Controller
             ]);
         }
 
-        // count all data in table bitcoin and iterate
+        // count all data in table binance and iterate
         $count = DB::table('bayes')->count();
         // get the last 100 records from the bayes table in ascending order
         $bayesData = DB::table('bayes')->orderBy('id', 'desc')->take(100)->get();
@@ -425,17 +519,41 @@ class Binance extends Controller
         $p = $this->accuracy();
         return $p;
     }
-    //Binance
-    public function import1(Request $request)
+
+    //binance
+    public function importbinance(Request $request)
     {
         $datei = $request->date;
         // validate date
-        $this->validate($request, [
-            'date' => 'required|date',
-        ]);
+        // $this->validate($request, [
+        //     'date' => 'required|date',
+        // ]);
         // convert date to string
         $datei = date('Y/m/d', strtotime($datei));
+        $file = $request->file('csv_input_binance');
+        if ($file && $file->isValid()) {
+            $path = $file->getRealPath();
+            $data = array_map('str_getcsv', file($path));
 
+            // Get header row to retrieve column indexes
+            $header = $data[0];
+            $dateIndex = array_search('Date', $header);
+            $highIndex = array_search('High', $header);
+            $lowIndex = array_search('Low', $header);
+            $volumeIndex = array_search('Volume', $header);
+            // Remove header row from data
+            $data = array_slice($data, 1);
+            $table = 'binance';
+            DB::table('binance')->where('id', '<>', 'admin')->delete();
+            foreach ($data as $row) {
+                DB::table($table)->insert([
+                    'date' => date('Y/m/d', strtotime($row[$dateIndex])),
+                    'high' => is_numeric($row[$highIndex]) ? $row[$highIndex] : 0,
+                    'low' => is_numeric($row[$lowIndex]) ? $row[$lowIndex] : 0,
+                    'volume' => is_numeric($row[$volumeIndex]) ? $row[$volumeIndex] : 0,
+                ]);
+            }
+        }
         $table = 'binance';
         $this->HitungSMA($table);
         $this->Threshold($table);
@@ -456,15 +574,9 @@ class Binance extends Controller
         // get output in function bayes
 
         // select high and low and volume from table binance based on date
-        $bayesData = DB::table('bayes')
-        ->where('date', '<', $datei) // Add condition to filter dates before $datei
-        ->orderBy('id', 'desc')
-        ->get();
-
-        $high = $bayesData->first()->high;
-        $low = $bayesData->first()->low;
-        $volume = $bayesData->first()->volume;
-
+        $high = DB::table('bayes')->orderBy('id', 'desc')->value('high');
+        $low = DB::table('bayes')->orderBy('id', 'desc')->value('low');
+        $volume = DB::table('bayes')->orderBy('id', 'desc')->value('volume');
 
         $outputb = $this->naive($high, $low, $volume);
         $akurasi = $this->predict();
@@ -473,4 +585,11 @@ class Binance extends Controller
         return view('outputmenu')->with(compact('data', 'trend', 'low_data', 'low_trend', 'volume_data', 'volume_trend', 'date', 'output', 'outputb', 'akurasi', 'datei'));
     }
 
+    public function index(Request $request)
+    {
+        // minim date in table binance
+        $minDate = DB::table('binance')->min('date');
+        $maxDate = DB::table('binance')->max('date');
+        return view('menu.binance', compact('minDate', 'maxDate'));
+    }
 }

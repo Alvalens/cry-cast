@@ -593,4 +593,173 @@ public function f1Score()
         $maxDate = DB::table('bitcoin')->max('date');
         return view('menu.bitcoin', compact('minDate', 'maxDate'));
     }
+//     //Bitcoin
+//     public function import2(Request $request)
+//     {
+//         $file = $request->file('csv_input_bitcoin');
+//         if ($file && $file->isValid()) {
+//             $path = $file->getRealPath();
+//             $data = array_map('str_getcsv', file($path));
+//             $table = 'bitcoin';
+//             DB::table($table)->truncate();
+//             foreach ($data as $row) {
+//                 DB::table($table)->insert([
+//                     'date' => date('Y/m/d H:i:s', strtotime($row[3])),
+//                     'high' => is_numeric($row[4]) ? $row[4] : 0,
+//                     'low' => is_numeric($row[5]) ? $row[5] : 0,
+//                     'volume' => is_numeric($row[8]) ? $row[8] : 0,
+//                 ]);
+//             }
+//         }
+//         $this->AverageAll($table);
+//         $this->Threshold($table);
+//         $this->getHighData($table);
+//         // redirect to the page to display the results output
+//         return redirect()->route('output');
+//     }
+//     // Dogecoin
+//     public function import3(Request $request)
+//     {
+//         $file = $request->file('csv_input_dogecoin');
+//         if ($file && $file->isValid()) {
+//             $path = $file->getRealPath();
+//             $data = array_map('str_getcsv', file($path));
+//             $table = 'dogecoin';
+//             DB::table($table)->truncate();
+//             foreach ($data as $row) {
+//                 DB::table($table)->insert([
+//                     'date' => date('Y/m/d H:i:s', strtotime($row[3])),
+//                     'high' => is_numeric($row[4]) ? $row[4] : 0,
+//                     'low' => is_numeric($row[5]) ? $row[5] : 0,
+//                     'volume' => is_numeric($row[8]) ? $row[8] : 0,
+//                 ]);
+//             }
+//         }
+//         $this->AverageAll($table);
+//         $this->Threshold($table);
+//         $this->getHighData($table);
+//         // redirect to the page to display the results output
+//         return redirect()->route('output');
+//     }
+//     //Etherium
+//     public function import4(Request $request)
+//     {
+//         $file = $request->file('csv_input_etherium');
+//         if ($file && $file->isValid()) {
+//             $path = $file->getRealPath();
+//             $data = array_map('str_getcsv', file($path));
+//             $table = 'etherium';
+//             DB::table($table)->truncate();
+//             foreach ($data as $row) {
+//                 DB::table($table)->insert([
+//                     'date' => date('Y/m/d H:i:s', strtotime($row[3])),
+//                     'high' => is_numeric($row[4]) ? $row[4] : 0,
+//                     'low' => is_numeric($row[5]) ? $row[5] : 0,
+//                     'volume' => is_numeric($row[8]) ? $row[8] : 0,
+//                 ]);
+//             }
+//         }
+//         $this->AverageAll($table);
+//         $this->Threshold($table);
+//         $this->getHighData($table);
+//         // redirect to the page to display the results output
+//         return redirect()->route('output');
+//     }
+//     //Iota
+//     public function import5(Request $request)
+//     {
+//         $file = $request->file('csv_input_iota');
+//         if ($file && $file->isValid()) {
+//             $path = $file->getRealPath();
+//             $data = array_map('str_getcsv', file($path));
+//             $table = 'iota';
+//             DB::table($table)->truncate();
+//             foreach ($data as $row) {
+//                 DB::table($table)->insert([
+//                     'date' => date('Y/m/d H:i:s', strtotime($row[3])),
+//                     'high' => is_numeric($row[4]) ? $row[4] : 0,
+//                     'low' => is_numeric($row[5]) ? $row[5] : 0,
+//                     'volume' => is_numeric($row[8]) ? $row[8] : 0,
+//                 ]);
+//             }
+//         }
+//         $this->AverageAll($table);
+//         $this->Threshold($table);
+//         $this->getHighData($table);
+//         // redirect to the page to display the results output
+//         return redirect()->route('output');
+//     }
+//     //Solana
+//     public function import6(Request $request)
+//     {
+//         $file = $request->file('csv_input_solana');
+//         if ($file && $file->isValid()) {
+//             $path = $file->getRealPath();
+//             $data = array_map('str_getcsv', file($path));
+//             $table = 'solana';
+//             DB::table($table)->truncate();
+//             foreach ($data as $row) {
+//                 DB::table($table)->insert([
+//                     'date' => date('Y/m/d H:i:s', strtotime($row[3])),
+//                     'high' => is_numeric($row[4]) ? $row[4] : 0,
+//                     'low' => is_numeric($row[5]) ? $row[5] : 0,
+//                     'volume' => is_numeric($row[8]) ? $row[8] : 0,
+//                 ]);
+//             }
+//         }
+//         $this->AverageAll($table);
+//         $this->Threshold($table);
+//         $this->getHighData($table);
+//         // redirect to the page to display the results output
+//         return redirect()->route('output');
+//     }
+//     //Stellar
+//     public function import7(Request $request)
+//     {
+//         $file = $request->file('csv_input_stellar');
+//         if ($file && $file->isValid()) {
+//             $path = $file->getRealPath();
+//             $data = array_map('str_getcsv', file($path));
+//             $table = 'stellar';
+//             DB::table($table)->truncate();
+//             foreach ($data as $row) {
+//                 DB::table($table)->insert([
+//                     'date' => date('Y/m/d H:i:s', strtotime($row[3])),
+//                     'high' => is_numeric($row[4]) ? $row[4] : 0,
+//                     'low' => is_numeric($row[5]) ? $row[5] : 0,
+//                     'volume' => is_numeric($row[8]) ? $row[8] : 0,
+//                 ]);
+//             }
+//         }
+//         $this->AverageAll($table);
+//         $this->Threshold($table);
+//         $this->getHighData($table);
+//         // redirect to the page to display the results output
+//         return redirect()->route('output');
+//     }
+//     //Tron
+//     public function import8(Request $request)
+//     {
+//         $file = $request->file('csv_input_tron');
+//         if ($file && $file->isValid()) {
+//             $path = $file->getRealPath();
+//             $data = array_map('str_getcsv', file($path));
+//             $table = 'tron';
+//             DB::table($table)->truncate();
+//             foreach ($data as $row) {
+//                 DB::table($table)->insert([
+//                     'date' => date('Y/m/d H:i:s', strtotime($row[3])),
+//                     'high' => is_numeric($row[4]) ? $row[4] : 0,
+//                     'low' => is_numeric($row[5]) ? $row[5] : 0,
+//                     'volume' => is_numeric($row[8]) ? $row[8] : 0,
+//                 ]);
+//             }
+//         }
+//         $this->AverageAll($table);
+//         $this->Threshold($table);
+//         $this->getHighData($table);
+//         // redirect to the page to display the results output
+//         return redirect()->route('output');
+//     }
+
 }

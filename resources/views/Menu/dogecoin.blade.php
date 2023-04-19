@@ -10,7 +10,7 @@
         <h1 class="text-center">Dogecoin</h1>
       </div>
       <div class="card-body p-4" style="background-color: rgba(255, 255, 255, 0);">
-        <form method="POST" action="/import3" enctype="multipart/form-data">
+        <form method="POST" action="{{ route('IDogecoin') }}" enctype="multipart/form-data">
           <!-- pilih tanggal -->
           <div class="mb-3">
             <label for="dateInput" class="form-label">Masukkan Tanggal</label>

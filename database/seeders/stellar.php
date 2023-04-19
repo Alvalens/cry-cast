@@ -7,12 +7,14 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
-
-class binance extends Seeder
+class stellar extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run()
     {
-        $path = storage_path('app/public/coin_BinanceCoin.csv'); // Path to your CSV file
+        $path = storage_path('app/public/coin_Stellar.csv'); // Path to your CSV file
         $data = array_map('str_getcsv', file($path));
         $header = $data[0];
         $dateIndex = array_search('Date', $header);
@@ -21,10 +23,10 @@ class binance extends Seeder
         $volumeIndex = array_search('Volume', $header);
         // Remove header row from data
         $data = array_slice($data, 1);
-        DB::table('binance')->truncate();
+        DB::table('stellar')->truncate();
         foreach ($data as $row) {
             // Insert the data into the users table
-            DB::table('Binance')->insert([
+            DB::table('stellar')->insert([
                 'date' => date('Y/m/d', strtotime($row[$dateIndex])),
                 'high' => is_numeric($row[$highIndex]) ? $row[$highIndex] : 0,
                 'low' => is_numeric($row[$lowIndex]) ? $row[$lowIndex] : 0,

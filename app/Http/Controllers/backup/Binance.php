@@ -6,16 +6,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PDO;
 
-class Bitcoin extends Controller
+class Binance extends Controller
 {
-
+        public function index(Request $request){
+        // minim date in table binance
+        $minDate = DB::table('binance')->min('date');
+        $maxDate = DB::table('binance')->max('date');
+        return view('menu.binance', compact('minDate', 'maxDate'));
+        }
     //mencari Simple Moving Average
     public function HitungSMA($table)
     {
         // Create a PDO connection to the database
         $db = new PDO('mysql:host=localhost;dbname=crypto', 'root', '');
 
-        // Prepare the SQL query to get the low, high, and volume values from the bitcoin table in groups of 5
+        // Prepare the SQL query to get the low, high, and volume values from the binance table in groups of 5
         $stmt = $db->prepare('SELECT date, low, high, volume FROM ' . $table);
 
         // Execute the query
@@ -82,7 +87,7 @@ class Bitcoin extends Controller
         // Create a PDO connection to the database
         $db = new PDO('mysql:host=localhost;dbname=crypto', 'root', '');
 
-        // Prepare the SQL query to get the monthly averages of low, high, and volume from the bitcoin table
+        // Prepare the SQL query to get the monthly averages of low, high, and volume from the binance table
         $stmt = $db->prepare("SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, AVG(low) AS avg_low, AVG(high) AS avg_high, AVG(volume) AS avg_volume FROM $table GROUP BY month");
 
         // Execute the query
@@ -138,7 +143,7 @@ class Bitcoin extends Controller
         return $output;
     }
 
-    // treshold check based on threshold table per month and iterate to chech per day in bitcoin table
+    // treshold check based on threshold table per month and iterate to chech per day in binance table
     public function bayes($table)
     {
         // Get the threshold data for each month
@@ -158,7 +163,7 @@ class Bitcoin extends Controller
             $startDate = $year . '-' . $month . '-01';
             $endDate = date('Y-m-t', strtotime($startDate));
 
-            // Get the bitcoin data for the month
+            // Get the binance data for the month
             $prevData = DB::table($table)
                 ->whereBetween('date', [$startDate, $endDate])
                 ->get();
@@ -219,10 +224,11 @@ class Bitcoin extends Controller
     }
 
 
+
     // naive bayes output count for each day
-    public function naive($high, $low, $volume)
+    public function naive($high=0, $low=0, $volume=1)
     {
-        // class
+           // class
         $harga1 = DB::table('bayes')->where('harga', 1)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $harga0 = DB::table('bayes')->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $hargatotal = DB::table('bayes')->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
@@ -264,9 +270,6 @@ class Bitcoin extends Controller
         $volumetotal0 = DB::table('bayes')->where('harga', 0)->whereNotBetween('id', [DB::table('bayes')->max('id') - 100, DB::table('bayes')->max('id')])->count();
         $pv10 = $volume10 / $volumetotal0;
         $pv00 = $volume00 / $volumetotal0;
-
-
-
 
         // output when up
         $output1111 = round((($ph11 * $pl11 * $pv11 * $Class1) / (($ph11 * $pl11 * $pv11 * $Class1) + ($ph10 * $pl10 * $pv10 * $Class0))) * 100, 2);
@@ -372,104 +375,6 @@ class Bitcoin extends Controller
         return $accuracy;
     }
 
-// Recall
-public function recall()
-{
-    DB::table('recall')->truncate();
-    $bayeses = DB::table('bayes')->get();
-    $predictions = DB::table('prediction')->get();
-    $truePositive = 0;
-    $falseNegative = 0;
-    $totalPositive = 0;
-    $totalNegative = 0;
-
-    // hitung true positive dan false negative
-    foreach ($bayeses as $bayes) {
-        foreach ($predictions as $prediction) {
-            if ($bayes->date == $prediction->date) {
-                if ($bayes->harga == 1) {
-                    $totalPositive++;
-                    if ($prediction->hasil == 1) {
-                        $truePositive++;
-                    } else {
-                        $falseNegative++;
-                    }
-                } else {
-                    $totalNegative++;
-                }
-            }
-        }
-    }
-
-    // hitung recall
-    if ($truePositive + $falseNegative > 0) {
-        $recall = round($truePositive / ($truePositive + $falseNegative) * 100, 2);
-    } else {
-        echo "else recall 0";
-        $recall = 0;
-    }
-
-    DB::table('recall')->insert(['hasil' => $recall]);
-
-    return $recall;
-}
-
-// Precision
-public function precision()
-{
-    DB::table('precision')->truncate();
-    $bayeses = DB::table('bayes')->get();
-    $predictions = DB::table('prediction')->get();
-    $truePositive = 0;
-    $falsePositive = 0;
-    $totalPositive = 0;
-    $totalNegative = 0;
-
-    // hitung true positive dan false positive
-    foreach ($bayeses as $bayes) {
-        foreach ($predictions as $prediction) {
-            if ($bayes->date == $prediction->date) {
-                if ($bayes->harga == 1) {
-                    $totalPositive++;
-                    if ($prediction->hasil == 1) {
-                        $truePositive++;
-                    }
-                } else {
-                    $totalNegative++;
-                    if ($prediction->hasil == 1) {
-                        $falsePositive++;
-                    }
-                }
-            }
-        }
-    }
-
-    // hitung precision
-    if ($truePositive + $falsePositive > 0) {
-        $precision = round($truePositive / ($truePositive + $falsePositive) * 100, 2);
-    } else {
-        $precision = 0;
-    }
-
-    DB::table('precision')->insert(['hasil' => $precision]);
-
-    return $precision;
-}
-
-// F1 Score
-public function f1Score()
-{
-    $recall = $this->recall();
-    $precision = $this->precision();
-    if ($recall + $precision > 0) {
-        $f1Score = round((2 * $recall * $precision) / ($recall + $precision), 2);
-    } else {
-        $f1Score = 0;
-    }
-    DB::table('f1_score')->insert(['hasil' => $f1Score]);
-
-    return $f1Score;
-}
     public function predict()
     {
         // truncate table prediction
@@ -520,52 +425,28 @@ public function f1Score()
         $p = $this->accuracy();
         return $p;
     }
-
-    //bitcoin
-    public function import2(Request $request)
+    //Binance
+    public function import1(Request $request)
     {
         $datei = $request->date;
         // validate date
-        // $this->validate($request, [
-        //     'date' => 'required|date',
-        // ]);
+        $this->validate($request, [
+            'date' => 'required|date',
+        ]);
         // convert date to string
         $datei = date('Y/m/d', strtotime($datei));
-        $file = $request->file('csv_input_bitcoin');
-        if ($file && $file->isValid()) {
-            $path = $file->getRealPath();
-            $data = array_map('str_getcsv', file($path));
 
-            // Get header row to retrieve column indexes
-            $header = $data[0];
-            $dateIndex = array_search('Date', $header);
-            $highIndex = array_search('High', $header);
-            $lowIndex = array_search('Low', $header);
-            $volumeIndex = array_search('Volume', $header);
-            // Remove header row from data
-            $data = array_slice($data, 1);
-            $table = 'bitcoin';
-            DB::table('bitcoin')->where('id', '<>', 'admin')->delete();
-            foreach ($data as $row) {
-                DB::table($table)->insert([
-                    'date' => date('Y/m/d', strtotime($row[$dateIndex])),
-                    'high' => is_numeric($row[$highIndex]) ? $row[$highIndex] : 0,
-                    'low' => is_numeric($row[$lowIndex]) ? $row[$lowIndex] : 0,
-                    'volume' => is_numeric($row[$volumeIndex]) ? $row[$volumeIndex] : 0,
-                ]);
-            }
-        }
-        $table = 'bitcoin';
+        $table = 'binance';
         $this->HitungSMA($table);
         $this->Threshold($table);
         $data = DB::table($table)->select('high')->get();
         $trend = DB::table('SMA')->select('sma_high')->get();
 
-        // get data as array from table bitcoin and column low and column id
+        // get data as array from table binance and column low and column id
         $low_data = DB::table($table)->select('low')->get();
         $low_trend = DB::table('SMA')->select('sma_low')->get();
 
-        // get data as array from table bitcoin and column volume and column id
+        // get data as array from table binance and column volume and column id
         $volume_data = DB::table($table)->select('volume')->get();
         $volume_trend = DB::table('SMA')->select('sma_volume')->get();
         $date = DB::table($table)->select('date')->get();
@@ -574,10 +455,16 @@ public function f1Score()
         $output = $this->BB($table);
         // get output in function bayes
 
-        // select high and low and volume from table bitcoin based on date
-        $high = DB::table('bayes')->orderBy('id', 'desc')->value('high');
-        $low = DB::table('bayes')->orderBy('id', 'desc')->value('low');
-        $volume = DB::table('bayes')->orderBy('id', 'desc')->value('volume');
+        // select high and low and volume from table binance based on date
+        $bayesData = DB::table('bayes')
+        ->where('date', '<', $datei) // Add condition to filter dates before $datei
+        ->orderBy('id', 'desc')
+        ->get();
+
+        $high = $bayesData->first()->high;
+        $low = $bayesData->first()->low;
+        $volume = $bayesData->first()->volume;
+
 
         $outputb = $this->naive($high, $low, $volume);
         $akurasi = $this->predict();
@@ -586,11 +473,4 @@ public function f1Score()
         return view('outputmenu')->with(compact('data', 'trend', 'low_data', 'low_trend', 'volume_data', 'volume_trend', 'date', 'output', 'outputb', 'akurasi', 'datei'));
     }
 
-    public function index(Request $request)
-    {
-        // minim date in table bitcoin
-        $minDate = DB::table('bitcoin')->min('date');
-        $maxDate = DB::table('bitcoin')->max('date');
-        return view('menu.bitcoin', compact('minDate', 'maxDate'));
-    }
 }

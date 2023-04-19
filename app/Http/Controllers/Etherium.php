@@ -6,16 +6,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PDO;
 
-class Bitcoin extends Controller
+class Etherium extends Controller
 {
-
     //mencari Simple Moving Average
     public function HitungSMA($table)
     {
         // Create a PDO connection to the database
         $db = new PDO('mysql:host=localhost;dbname=crypto', 'root', '');
 
-        // Prepare the SQL query to get the low, high, and volume values from the bitcoin table in groups of 5
+        // Prepare the SQL query to get the low, high, and volume values from the etherium table in groups of 5
         $stmt = $db->prepare('SELECT date, low, high, volume FROM ' . $table);
 
         // Execute the query
@@ -82,7 +81,7 @@ class Bitcoin extends Controller
         // Create a PDO connection to the database
         $db = new PDO('mysql:host=localhost;dbname=crypto', 'root', '');
 
-        // Prepare the SQL query to get the monthly averages of low, high, and volume from the bitcoin table
+        // Prepare the SQL query to get the monthly averages of low, high, and volume from the etherium table
         $stmt = $db->prepare("SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, AVG(low) AS avg_low, AVG(high) AS avg_high, AVG(volume) AS avg_volume FROM $table GROUP BY month");
 
         // Execute the query
@@ -138,7 +137,7 @@ class Bitcoin extends Controller
         return $output;
     }
 
-    // treshold check based on threshold table per month and iterate to chech per day in bitcoin table
+    // treshold check based on threshold table per month and iterate to chech per day in etherium table
     public function bayes($table)
     {
         // Get the threshold data for each month
@@ -158,7 +157,7 @@ class Bitcoin extends Controller
             $startDate = $year . '-' . $month . '-01';
             $endDate = date('Y-m-t', strtotime($startDate));
 
-            // Get the bitcoin data for the month
+            // Get the etherium data for the month
             $prevData = DB::table($table)
                 ->whereBetween('date', [$startDate, $endDate])
                 ->get();
@@ -486,7 +485,7 @@ public function f1Score()
             ]);
         }
 
-        // count all data in table bitcoin and iterate
+        // count all data in table etherium and iterate
         $count = DB::table('bayes')->count();
         // get the last 100 records from the bayes table in ascending order
         $bayesData = DB::table('bayes')->orderBy('id', 'desc')->take(100)->get();
@@ -521,8 +520,8 @@ public function f1Score()
         return $p;
     }
 
-    //bitcoin
-    public function import2(Request $request)
+    //etherium
+    public function importetherium(Request $request)
     {
         $datei = $request->date;
         // validate date
@@ -531,7 +530,7 @@ public function f1Score()
         // ]);
         // convert date to string
         $datei = date('Y/m/d', strtotime($datei));
-        $file = $request->file('csv_input_bitcoin');
+        $file = $request->file('csv_input_etherium');
         if ($file && $file->isValid()) {
             $path = $file->getRealPath();
             $data = array_map('str_getcsv', file($path));
@@ -544,8 +543,8 @@ public function f1Score()
             $volumeIndex = array_search('Volume', $header);
             // Remove header row from data
             $data = array_slice($data, 1);
-            $table = 'bitcoin';
-            DB::table('bitcoin')->where('id', '<>', 'admin')->delete();
+            $table = 'etherium';
+            DB::table('etherium')->where('id', '<>', 'admin')->delete();
             foreach ($data as $row) {
                 DB::table($table)->insert([
                     'date' => date('Y/m/d', strtotime($row[$dateIndex])),
@@ -555,17 +554,17 @@ public function f1Score()
                 ]);
             }
         }
-        $table = 'bitcoin';
+        $table = 'etherium';
         $this->HitungSMA($table);
         $this->Threshold($table);
         $data = DB::table($table)->select('high')->get();
         $trend = DB::table('SMA')->select('sma_high')->get();
 
-        // get data as array from table bitcoin and column low and column id
+        // get data as array from table etherium and column low and column id
         $low_data = DB::table($table)->select('low')->get();
         $low_trend = DB::table('SMA')->select('sma_low')->get();
 
-        // get data as array from table bitcoin and column volume and column id
+        // get data as array from table etherium and column volume and column id
         $volume_data = DB::table($table)->select('volume')->get();
         $volume_trend = DB::table('SMA')->select('sma_volume')->get();
         $date = DB::table($table)->select('date')->get();
@@ -574,7 +573,7 @@ public function f1Score()
         $output = $this->BB($table);
         // get output in function bayes
 
-        // select high and low and volume from table bitcoin based on date
+        // select high and low and volume from table etherium based on date
         $high = DB::table('bayes')->orderBy('id', 'desc')->value('high');
         $low = DB::table('bayes')->orderBy('id', 'desc')->value('low');
         $volume = DB::table('bayes')->orderBy('id', 'desc')->value('volume');
@@ -588,9 +587,9 @@ public function f1Score()
 
     public function index(Request $request)
     {
-        // minim date in table bitcoin
-        $minDate = DB::table('bitcoin')->min('date');
-        $maxDate = DB::table('bitcoin')->max('date');
-        return view('menu.bitcoin', compact('minDate', 'maxDate'));
+        // minim date in table etherium
+        $minDate = DB::table('etherium')->min('date');
+        $maxDate = DB::table('etherium')->max('date');
+        return view('menu.etherium', compact('minDate', 'maxDate'));
     }
 }

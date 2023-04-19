@@ -7,6 +7,16 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Binance;
 use App\Http\Controllers\Bitcoin;
+use App\Http\Controllers\Dogecoin;
+use App\Http\Controllers\Etherium;
+use App\Http\Controllers\Iota;
+use App\Http\Controllers\Solana;
+use App\Http\Controllers\Stellar;
+use App\Http\Controllers\Tron;
+use App\Http\Controllers\Master;
+
+
+
 
 
 /*
@@ -74,8 +84,18 @@ Route::prefix('menu')->group(function () {
         return view('menu.bitcoin');
     });
 
-    // route to bianceconmtroller index
+    // route to index
     Route::get('binance', [Binance::class, 'index']);
+    Route::get('bitcoin', [Bitcoin::class, 'index']);
+    Route::get('dogecoin', [Dogecoin::class, 'index']);
+    Route::get('etherium', [Etherium::class, 'index']);
+    Route::get('iota', [Iota::class, 'index']);
+    Route::get('solana', [Solana::class, 'index']);
+    Route::get('stelllar', [Stellar::class, 'index']);
+    Route::get('tron', [Tron::class, 'index']);
+    Route::get('master', [Master::class, 'index']);
+
+
 
     // route to dogecoin
     Route::get('dogecoin', function () {
@@ -104,19 +124,17 @@ Route::prefix('menu')->group(function () {
 });
 
 // Route to controller
-Route::post('/import', 'App\Http\Controllers\NewController@import');
-// import 1 in controller Binance
-Route::post('/import1', 'App\Http\Controllers\Binance@import1')->name('import1');
-// import 2 in controller Bitcoin
-Route::post('/import2', 'App\Http\Controllers\Bitcoin@import2')->name('import2');
-Route::post('/import3', 'App\Http\Controllers\NewController@import3');
-Route::post('/import4', 'App\Http\Controllers\NewController@import4');
-Route::post('/import5', 'App\Http\Controllers\NewController@import5');
-Route::post('/import6', 'App\Http\Controllers\NewController@import6');
-Route::post('/import7', 'App\Http\Controllers\NewController@import7');
-Route::post('/import8', 'App\Http\Controllers\NewController@import8');
+Route::post('/importmaster', 'App\Http\Controllers\Master@importmaster')->name('IMaster');
+Route::post('/importbinance', 'App\Http\Controllers\Binance@importbinance')->name('IBinance');
+Route::post('/importbitcoin', 'App\Http\Controllers\Bitcoin@importbitcoin')->name('IBitcoin');
+Route::post('/importdogecoin', 'App\Http\Controllers\Dogecoin@importdogecoin')->name('IDogecoin');
+Route::post('/importetherium', 'App\Http\Controllers\Etherium@importetherium')->name('IEtherium');
+Route::post('/importiota', 'App\Http\Controllers\Iota@imporiota')->name('IIota');
+Route::post('/importsolana', 'App\Http\Controllers\Solana@importsolana')->name('ISolana');
+Route::post('/importstellar', 'App\Http\Controllers\Stellar@importstellar')->name('IStellar');
+Route::post('/importtron', 'App\Http\Controllers\Tron@importtron')->name('ITron');
 
-// Output
+
 
 // Try Naive Bayes
 Route::get('/naive', 'App\Http\Controllers\NewController@naiveBayes')->name('naive');
